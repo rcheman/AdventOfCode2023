@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const data = fs.readFileSync(path.resolve(__dirname, './2023_3.txt'), 'utf8');
+const data = fs.readFileSync(path.resolve(__dirname, './2023_3_data.txt'), 'utf8');
 
 // go through each line and look for a number
 // when you find a digit, check for a symbol in all directions around it
@@ -11,66 +11,90 @@ const data = fs.readFileSync(path.resolve(__dirname, './2023_3.txt'), 'utf8');
 
 const lines = data.split('\n');
 
-const symbolReg = /[^a-zA-Z0-9_.]/
+const gearReg = /[*]/
 const numberReg = /\d/
+
 
 let total = 0;
 // loop through each line
 for (let i = 0; i < lines.length; i++) {
-  let tempNum = "";
-    let symbolFound = false;
+  let tempNums = new Set();
+    let numberFound = false;
   // loop through each character in the line
   for (let j = 0; j < lines[i].length; j++) {
-    // Check if the character is a number
+    // Check if the character is a gear
     let isNumber = numberReg.test(lines[i][j]);
-    let isSymbol = symbolReg.test(lines[i][j]);
+    let isGear = gearReg.test(lines[i][j]);
 
-    if (!isNumber && !isSymbol){
-      tempNum = ""
+    if (!isNumber && !isGear) {
+      tempNums.clear()
       continue
     }
 
-    if (isNumber) {
-      tempNum += lines[i][j]
-      // search surrounding areas for symbols
-      // test above
+    if (isGear) {
       if (i > 0) { // exclude looking above the top row
-        if (symbolReg.test(lines[i-1][j-1]) || symbolReg.test(lines[i-1][j]) || symbolReg.test(lines[i-1][j+1])){
-          symbolFound = true;
+        if (numberReg.test(lines[i - 1][j - 1])){
+          tempNums.add(findFullNumber(i-1,j-1))
+        }
+        if (numberReg.test(lines[i - 1][j])){
+          tempNums.add(findFullNumber(i-1, j))
+        }
+        if (numberReg.test(lines[i - 1][j + 1])) {
+          tempNums.add(findFullNumber(i-1, j+1))
         }
         // test below
       }
       if (i < lines.length - 1) { // exclude looking below the bottom row
-        if (symbolReg.test(lines[i+1][j-1]) || symbolReg.test(lines[i+1][j]) || symbolReg.test(lines[i+1][j+1])){
-          symbolFound = true;
+        if (numberReg.test(lines[i + 1][j - 1])) {
+          tempNums.add(findFullNumber(i+1,j-1))
+        }
+        if (numberReg.test(lines[i + 1][j])) {
+          tempNums.add(findFullNumber(i+1, j))
+        }
+        if (numberReg.test(lines[i + 1][j + 1])) {
+          tempNums.add(findFullNumber(i+1, j+1))
         }
         // test to either side
       }
       if (j > 0 && j < lines[i].length) { // exclude looking past the left and right side
-        if (symbolReg.test(lines[i][j-1]) || symbolReg.test(lines[i][j+1])){
-          symbolFound = true;
+        if (numberReg.test(lines[i][j - 1])) {
+          tempNums.add(findFullNumber(i, j-1))
+        }
+        if (numberReg.test(lines[i][j + 1])) {
+          tempNums.add(findFullNumber(i, j+1))
         }
       }
+      // Make sure we have more than one part
+      if (tempNums.size > 1) {
+        let gearNumbers = tempNums.values()
+        let num1 = Number(gearNumbers.next().value)
+        let num2 = Number(gearNumbers.next().value)
+        total += num1 * num2
+      }
     }
 
-    console.log("Symbol found: ", symbolFound)
-    if (symbolFound){
-      // find the end of the number then add total number to the sum
-      while (numberReg.test(lines[i][j+1])) {
-        tempNum += lines[i][j+1]
-        j++
-      }
-      console.log("tempNumber: ", tempNum)
-      total += Number(tempNum)
-      // reset to look for next number
-      tempNum = ""
-      symbolFound = false;
-    }
 
     console.log("total: ", total)
-    console.log("Is a number: ", isNumber)
+    console.log("Is a gear: ", isGear)
+    console.log("Found numbers: ", tempNums)
     console.log("Input: ", lines[i][j])
     console.log("**********************")
+
+    function findFullNumber(I, J) {
+      let foundNumber = "";
+      // look back until you find the beginning of the number
+      while (numberReg.test(lines[I][J-1])){
+        J--
+      }
+      foundNumber += lines[I][J]
+      // continue until the end of the number
+      while (numberReg.test(lines[I][J+1])){
+        J++
+        foundNumber += lines[I][J]
+      }
+      return foundNumber
+    }
+
   }
 }
 
