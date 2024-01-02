@@ -25,10 +25,10 @@ function calculateProjections(allDifferences) {
     // allDifferences[i] contains all the arrays of differences for a particular history
     let currHistory = allDifferences[i]
     let lastIndex = currHistory.length-1
-    let prediction = currHistory[lastIndex][currHistory[lastIndex].length-1] + currHistory[lastIndex-1][currHistory[lastIndex-1].length-1]
+    let prediction = currHistory[lastIndex-1][0] - currHistory[lastIndex][0]
     for (let j = currHistory.length -2; j > 0 ; j--) {
       // add the last value in the last array to the value in the second to last array, then add that value to the last value in the third to last etc.
-      prediction = prediction  + currHistory[j-1][currHistory[j-1].length-1]
+      prediction = currHistory[j-1][0] - prediction
       console.log(prediction)
     }
     predictionSum += prediction
